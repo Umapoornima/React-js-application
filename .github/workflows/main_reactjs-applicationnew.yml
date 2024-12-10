@@ -22,16 +22,17 @@ jobs:
           node-version: '18.x'
 
       - name: npm install, build, and test
+        working-directory: ./az-demo   # Set working directory to az-demo
         run: |
           npm install
           npm run build --if-present
           npm run test --if-present
-      
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: ./az-demo/build   # Upload the build folder as the artifact
 
   deploy:
     runs-on: ubuntu-latest
@@ -39,18 +40,19 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
-      
+          path: ./build   # Download the artifact to the build directory
+
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: 'reactjs-applicationnew'
+          app-name: 'reactjs-applicationnew'   # Replace with your App Service name
           slot-name: 'Production'
-          package: .
+          package: ./build   # Deploy the downloaded build folder
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B40F2176BF0D49BF971C5A6F1C70C2B0 }}
